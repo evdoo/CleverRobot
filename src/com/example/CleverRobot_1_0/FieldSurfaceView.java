@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -20,6 +21,26 @@ public class FieldSurfaceView extends SurfaceView implements SurfaceHolder.Callb
     public FieldSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
         getHolder().addCallback(this);
+    }
+
+    public void checkCollision(CleverRobot robot) {
+        Rect frame = getHolder().getSurfaceFrame();
+        if(robot.getX() < CleverRobot.RADIUS) {
+            robot.forceMove(CleverRobot.RADIUS, robot.getY());
+            robot.feedback(false);
+        }
+        if(robot.getY() < CleverRobot.RADIUS) {
+            robot.forceMove(robot.getX(), CleverRobot.RADIUS);
+            robot.feedback(false);
+        }
+        if (frame.width() - robot.getX() < CleverRobot.RADIUS) {
+            robot.forceMove(frame.width() - CleverRobot.RADIUS, robot.getY());
+            robot.feedback(false);
+        }
+        if (frame.height() - robot.getY() < CleverRobot.RADIUS) {
+            robot.forceMove(robot.getX(), frame.height() - CleverRobot.RADIUS);
+            robot.feedback(false);
+        }
     }
 
     @Override
