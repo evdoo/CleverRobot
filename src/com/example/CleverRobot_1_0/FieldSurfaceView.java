@@ -1,35 +1,40 @@
 package com.example.CleverRobot_1_0;
 
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Rect;
+import android.graphics.*;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+
+import java.util.ArrayList;
 
 /**
  * Created by loredan13 on 9/5/14.
  */
 public class FieldSurfaceView extends SurfaceView implements SurfaceHolder.Callback {
+    public static final int PAPER_RADIUS = 25;
 
-
-    private CleverRobot mBot;
+    public CleverRobot mBot;
     private DrawThread mDrawThread;
+    private ArrayList<Point> mPapers;
+    private Paint mPaperPaint;
 
     public FieldSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
         getHolder().addCallback(this);
+        mPaperPaint = new Paint();
+        mPaperPaint.setColor(Color.GREEN);
+        mPaperPaint.setStyle(Paint.Style.FILL);
+        mPapers.add(new Point(300, 300));
     }
 
     public void checkCollision(CleverRobot robot) {
         Rect frame = getHolder().getSurfaceFrame();
-        if(robot.getX() < CleverRobot.RADIUS) {
+        if (robot.getX() < CleverRobot.RADIUS) {
             robot.forceMove(CleverRobot.RADIUS, robot.getY());
             robot.feedback(false);
         }
-        if(robot.getY() < CleverRobot.RADIUS) {
+        if (robot.getY() < CleverRobot.RADIUS) {
             robot.forceMove(robot.getX(), CleverRobot.RADIUS);
             robot.feedback(false);
         }
@@ -43,10 +48,27 @@ public class FieldSurfaceView extends SurfaceView implements SurfaceHolder.Callb
         }
     }
 
+    public boolean check(double x, double y) {
+        Rect field = getHolder().getSurfaceFrame();
+        return field.contains((int) x, (int) y);
+    }
+
+    public boolean checkPaper(double x, double y) {
+        for(Point paper : mPapers) {
+            if(Math.sqrt((x - paper.x)*(x - paper.x) + (y - paper.y)*(y - paper.y)) < PAPER_RADIUS) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public void draw(Canvas canvas) {
-        if(isInEditMode()) {
+        if (isInEditMode()) {
             return;
+        }
+        for(Point paper : mPapers) {
+            canvas.drawCircle(paper.x, paper.y, PAPER_RADIUS, mPaperPaint);
         }
         mBot.draw(canvas);
     }
