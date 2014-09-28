@@ -3,6 +3,7 @@ package com.example.CleverRobot_1_0;
 import android.util.Log;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
  * Created by Vsevolod on 28.09.2014.
@@ -17,7 +18,7 @@ public class AdaptiveControl {
 
     public AdaptiveControl() {
         database = new HashMap<Long, Evaluations>();
-        actions = new HashSet<Action>();
+        actions = new ConcurrentSkipListSet<Action>();
         rnd = new Random();
     }
 
@@ -69,7 +70,7 @@ public class AdaptiveControl {
         }
     }
 
-    private class Action {
+    private class Action implements Comparable<Action> {
         public long timestamp;
         private long state;
         private int action;
@@ -82,6 +83,19 @@ public class AdaptiveControl {
 
         public void evaluate(boolean feedback) {
             database.get(state).evaluation[action] += 100 * Math.pow(MULTIPLIER, timestamp - System.currentTimeMillis()) * (feedback ? 1 : -1);
+        }
+
+        @Override
+        public int compareTo(Action another) {
+            if (timestamp > another.timestamp) {
+                return 1;
+            }
+            else if (timestamp < another.timestamp) {
+                return -1;
+            }
+            else {
+                return 0;
+            }
         }
     }
 

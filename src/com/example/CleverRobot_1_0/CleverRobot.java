@@ -42,10 +42,6 @@ public class CleverRobot {
         speed = 0;
         turnSpeed = 0;
         mFieldSurfaceView = fieldSurfaceView;
-        mMoveThread = new MoveThread(this);
-        mMoveThread.start();
-        mUpdateThread = new UpdateThread(this);
-        mUpdateThread.start();
 
         mRobotPaint = new Paint();
         mRobotPaint.setStyle(Paint.Style.FILL);
@@ -59,6 +55,11 @@ public class CleverRobot {
         }
 
         control = new AdaptiveControl();
+
+        mMoveThread = new MoveThread(this);
+        mMoveThread.start();
+        mUpdateThread = new UpdateThread(this);
+        mUpdateThread.start();
     }
 
     public int getX() {
@@ -86,7 +87,6 @@ public class CleverRobot {
     }
 
     public void setAction(int controlSignal) {
-        Log.d("signal", String.valueOf(controlSignal));
         switch (controlSignal) {
             case 0:
                 turnSpeed = -DEFAULT_TURNING_SPEED;
@@ -134,8 +134,8 @@ public class CleverRobot {
                 double distance = RADIUS + j * VIEW_DISTANCE / LEVELS;
                 double sensorX = x + distance * Math.cos(azimuth);
                 double sensorY = y + distance * Math.sin(azimuth);
-                sensorDataWall[j * SECTORS + i] = mFieldSurfaceView.check(sensorX, sensorY);
-                sensorDataPaper[j * SECTORS + i] = mFieldSurfaceView.checkPaper(sensorX, sensorY);
+                sensorDataWall[(j - 1) * SECTORS + i + SECTORS/2] = mFieldSurfaceView.check(sensorX, sensorY);
+                sensorDataPaper[(j - 1) * SECTORS + i + SECTORS/2] = mFieldSurfaceView.checkPaper(sensorX, sensorY);
             }
         }
         setAction(control.analyze(sensorDataWall, sensorDataPaper));
@@ -178,6 +178,7 @@ public class CleverRobot {
 
         public UpdateThread(CleverRobot robot) {
             mRobot = robot;
+            mRun = true;
         }
 
         @Override
