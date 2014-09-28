@@ -24,7 +24,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 String title = (String) ((Button) view).getText();
-                ((FieldSurfaceView) findViewById(R.id.fieldSurfaceView)).mBot.setAction(Integer.parseInt(title));
+                ((FieldSurfaceView) findViewById(R.id.fieldSurfaceView)).mBot.setAction(Integer.parseInt(title)-1);
             }
         };
 

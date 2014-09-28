@@ -14,7 +14,7 @@ public class CleverRobot {
     public static final double VIEW_ANGLE = Math.PI / 2;
     public static final double VIEW_DISTANCE = RADIUS * 4;
     public static final int LEVELS = 4;
-    public static final int SECTORS = 4;
+    public static final int SECTORS = 5;
 
     // текущие координаты на поле.
     private int x;
@@ -23,8 +23,10 @@ public class CleverRobot {
     private double speed;
     private double turnSpeed;
     private MoveThread mMoveThread;
+    private UpdateThread mUpdateThread;
     private FieldSurfaceView mFieldSurfaceView;
     private Paint mRobotPaint;
+    private AdaptiveControl control;
 
     private boolean[] sensorDataWall;
     private boolean[] sensorDataPaper;
@@ -42,6 +44,8 @@ public class CleverRobot {
         mFieldSurfaceView = fieldSurfaceView;
         mMoveThread = new MoveThread(this);
         mMoveThread.start();
+        mUpdateThread = new UpdateThread(this);
+        mUpdateThread.start();
 
         mRobotPaint = new Paint();
         mRobotPaint.setStyle(Paint.Style.FILL);
@@ -53,6 +57,8 @@ public class CleverRobot {
             sensorDataWall[i] = false;
             sensorDataPaper[i] = false;
         }
+
+        control = new AdaptiveControl();
     }
 
     public int getX() {
@@ -67,8 +73,6 @@ public class CleverRobot {
         x += Math.round(speed * elapsedTime * Math.cos(direction));
         y += Math.round(speed * elapsedTime * Math.sin(direction));
         direction += turnSpeed * elapsedTime;
-        Log.d("state", x + " " + y + " " + direction);
-        Log.d("state'", speed + " " + turnSpeed);
         mFieldSurfaceView.checkCollision(this);
     }
 
@@ -78,44 +82,45 @@ public class CleverRobot {
     }
 
     public void feedback(boolean positive) {
-
+        control.evaluate(positive);
     }
 
     public void setAction(int controlSignal) {
+        Log.d("signal", String.valueOf(controlSignal));
         switch (controlSignal) {
-            case 1:
+            case 0:
                 turnSpeed = -DEFAULT_TURNING_SPEED;
+                speed = DEFAULT_SPEED;
+                break;
+            case 1:
+                turnSpeed = 0;
                 speed = DEFAULT_SPEED;
                 break;
             case 2:
-                turnSpeed = 0;
+                turnSpeed = DEFAULT_TURNING_SPEED;
                 speed = DEFAULT_SPEED;
                 break;
             case 3:
-                turnSpeed = DEFAULT_TURNING_SPEED;
-                speed = DEFAULT_SPEED;
+                turnSpeed = -DEFAULT_TURNING_SPEED;
+                speed = 0;
                 break;
             case 4:
-                turnSpeed = -DEFAULT_TURNING_SPEED;
+                turnSpeed = 0;
                 speed = 0;
                 break;
             case 5:
-                turnSpeed = 0;
-                speed = 0;
-                break;
-            case 6:
                 turnSpeed = DEFAULT_TURNING_SPEED;
                 speed = 0;
                 break;
-            case 7:
+            case 6:
                 turnSpeed = -DEFAULT_TURNING_SPEED;
                 speed = -DEFAULT_SPEED;
                 break;
-            case 8:
+            case 7:
                 turnSpeed = 0;
                 speed = -DEFAULT_SPEED;
                 break;
-            case 9:
+            case 8:
                 turnSpeed = DEFAULT_TURNING_SPEED;
                 speed = -DEFAULT_SPEED;
                 break;
@@ -133,6 +138,7 @@ public class CleverRobot {
                 sensorDataPaper[j * SECTORS + i] = mFieldSurfaceView.checkPaper(sensorX, sensorY);
             }
         }
+        setAction(control.analyze(sensorDataWall, sensorDataPaper));
     }
 
     public void draw(Canvas canvas) {
@@ -158,6 +164,26 @@ public class CleverRobot {
                 long time = System.currentTimeMillis();
                 mRobot.move(time - prevTime);
                 prevTime = time;
+            }
+        }
+
+        public void interrupt() {
+            mRun = false;
+        }
+    }
+
+    private class UpdateThread extends Thread {
+        private CleverRobot mRobot;
+        private boolean mRun;
+
+        public UpdateThread(CleverRobot robot) {
+            mRobot = robot;
+        }
+
+        @Override
+        public void run() {
+            while(mRun) {
+                mRobot.updateSensors();
             }
         }
 

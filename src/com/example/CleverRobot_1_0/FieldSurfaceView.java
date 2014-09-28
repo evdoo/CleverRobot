@@ -25,6 +25,7 @@ public class FieldSurfaceView extends SurfaceView implements SurfaceHolder.Callb
         mPaperPaint = new Paint();
         mPaperPaint.setColor(Color.GREEN);
         mPaperPaint.setStyle(Paint.Style.FILL);
+        mPapers = new ArrayList<Point>();
         mPapers.add(new Point(300, 300));
     }
 
