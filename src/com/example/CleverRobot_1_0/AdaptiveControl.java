@@ -28,14 +28,12 @@ public class AdaptiveControl {
             hash += Math.pow(2, 2 * i) * (sensorDataWall[i] ? 1 : 0) + Math.pow(2, 2 * i + 1) * (sensorDataPaper[i] ? 1 : 0);
         }
 
-        Log.d("hash", String.valueOf(hash));
-
         if (!database.containsKey(hash)) {
             database.put(hash, new Evaluations());
         }
 
         int zeros = 0;
-        for (int i = 0; i < 9; i++) {
+        for (int i = 0; i < 6; i++) {
             if (database.get(hash).evaluation[i] == 0) {
                 zeros++;
             }
@@ -43,14 +41,35 @@ public class AdaptiveControl {
 
         double magic_number = rnd.nextDouble();
         if (magic_number < 0.1 * (zeros + 1)) {
-            int control_signal = rnd.nextInt(9);
+            int control_signal;
+            int choice = rnd.nextInt(6 - zeros + zeros*10);
+            int i = -1;
+            if(choice >= zeros*10) {
+                choice -= zeros*10;
+                while (choice >= 0 && i < 6) {
+                    i++;
+                    if (database.get(hash).evaluation[i] != 0) {
+                        choice--;
+                    }
+                }
+            }
+            else {
+                choice /= 10;
+                while (choice >= 0 && i < 6) {
+                    i++;
+                    if (database.get(hash).evaluation[i] == 0) {
+                        choice--;
+                    }
+                }
+            }
+            control_signal = i;
             actions.add(new Action(hash, control_signal));
             return control_signal;
         }
         else {
             int max_evaluation = database.get(hash).evaluation[0];
             int max_control_signal = 0;
-            for (int i = 1; i < 9; i++) {
+            for (int i = 1; i < 6; i++) {
                 if (max_evaluation < database.get(hash).evaluation[i]) {
                     max_evaluation = database.get(hash).evaluation[i];
                     max_control_signal = i;
@@ -82,7 +101,13 @@ public class AdaptiveControl {
         }
 
         public void evaluate(boolean feedback) {
-            database.get(state).evaluation[action] += 100 * Math.pow(MULTIPLIER, timestamp - System.currentTimeMillis()) * (feedback ? 1 : -1);
+            int change = (int) (100 * Math.pow(MULTIPLIER, timestamp - System.currentTimeMillis()) * (feedback ? 1 : -1));
+            if (database.get(state).evaluation[action] > database.get(state).evaluation[action] + change ^ !feedback) {
+                database.get(state).evaluation[action] += change;
+            }
+            else {
+                database.get(state).evaluation[action] = feedback ? Integer.MAX_VALUE : Integer.MIN_VALUE;
+            }
         }
 
         @Override
@@ -103,8 +128,8 @@ public class AdaptiveControl {
         private int[] evaluation;
 
         public Evaluations() {
-            evaluation = new int[9];
-            for (int i = 0; i < 9; i++) {
+            evaluation = new int[6];
+            for (int i = 0; i < 6; i++) {
                 evaluation[i] = 0;
             }
         }

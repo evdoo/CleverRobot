@@ -8,13 +8,14 @@ import android.util.Log;
  */
 public class CleverRobot {
     public static final int RADIUS = 50;
-    public static final double DEFAULT_SPEED = 1;
-    public static final double DEFAULT_TURNING_SPEED = Math.PI / 500;
+    public static final double DEFAULT_SPEED = 0.5;
+    public static final double DEFAULT_TURNING_SPEED = Math.PI / 1000;
 
     public static final double VIEW_ANGLE = Math.PI / 2;
     public static final double VIEW_DISTANCE = RADIUS * 4;
     public static final int LEVELS = 4;
     public static final int SECTORS = 5;
+    public static final int UPDATE_PERIOD = 50;
 
     // текущие координаты на поле.
     private int x;
@@ -27,6 +28,7 @@ public class CleverRobot {
     private FieldSurfaceView mFieldSurfaceView;
     private Paint mRobotPaint;
     private AdaptiveControl control;
+    private int mControlSignal = 0;
 
     private boolean[] sensorDataWall;
     private boolean[] sensorDataPaper;
@@ -87,6 +89,7 @@ public class CleverRobot {
     }
 
     public void setAction(int controlSignal) {
+        mControlSignal = controlSignal;
         switch (controlSignal) {
             case 0:
                 turnSpeed = -DEFAULT_TURNING_SPEED;
@@ -112,7 +115,7 @@ public class CleverRobot {
                 turnSpeed = DEFAULT_TURNING_SPEED;
                 speed = 0;
                 break;
-            case 6:
+            /*case 6:
                 turnSpeed = -DEFAULT_TURNING_SPEED;
                 speed = -DEFAULT_SPEED;
                 break;
@@ -123,7 +126,7 @@ public class CleverRobot {
             case 8:
                 turnSpeed = DEFAULT_TURNING_SPEED;
                 speed = -DEFAULT_SPEED;
-                break;
+                break;*/
         }
     }
 
@@ -144,7 +147,7 @@ public class CleverRobot {
     public void draw(Canvas canvas) {
         canvas.drawCircle(x, y, RADIUS, mRobotPaint);
         canvas.drawLine(x, y, (float) (RADIUS * 2 * Math.cos(direction)) + x, (float) (RADIUS * 2 * Math.sin(direction)) + y, mRobotPaint);
-
+        canvas.drawText(String.valueOf(mControlSignal), 100, 100, mRobotPaint);
     }
 
     private class MoveThread extends Thread {
@@ -161,6 +164,9 @@ public class CleverRobot {
             prevTime = System.currentTimeMillis();
             mRun = true;
             while (mRun) {
+                if(System.currentTimeMillis() - prevTime < 1/DEFAULT_SPEED) {
+                    continue;
+                }
                 long time = System.currentTimeMillis();
                 mRobot.move(time - prevTime);
                 prevTime = time;
@@ -183,8 +189,13 @@ public class CleverRobot {
 
         @Override
         public void run() {
+            long prevTime = System.currentTimeMillis();
             while(mRun) {
+                if(System.currentTimeMillis() - prevTime < UPDATE_PERIOD) {
+                    continue;
+                }
                 mRobot.updateSensors();
+                prevTime = System.currentTimeMillis();
             }
         }
 

@@ -47,6 +47,12 @@ public class FieldSurfaceView extends SurfaceView implements SurfaceHolder.Callb
             robot.forceMove(robot.getX(), frame.height() - CleverRobot.RADIUS);
             robot.feedback(false);
         }
+
+        for(Point paper : mPapers) {
+            if (Math.sqrt((robot.getX() - paper.x) * (robot.getX() - paper.x) + (robot.getY() - paper.y) * (robot.getY() - paper.y))<PAPER_RADIUS+CleverRobot.RADIUS) {
+                robot.feedback(true);
+            }
+        }
     }
 
     public boolean check(double x, double y) {

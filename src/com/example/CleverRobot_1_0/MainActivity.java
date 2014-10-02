@@ -19,23 +19,5 @@ public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-
-        OnClickListener btnOnClickListener = new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String title = (String) ((Button) view).getText();
-                ((FieldSurfaceView) findViewById(R.id.fieldSurfaceView)).mBot.setAction(Integer.parseInt(title)-1);
-            }
-        };
-
-        findViewById(R.id.btn1).setOnClickListener(btnOnClickListener);
-        findViewById(R.id.btn2).setOnClickListener(btnOnClickListener);
-        findViewById(R.id.btn3).setOnClickListener(btnOnClickListener);
-        findViewById(R.id.btn4).setOnClickListener(btnOnClickListener);
-        findViewById(R.id.btn5).setOnClickListener(btnOnClickListener);
-        findViewById(R.id.btn6).setOnClickListener(btnOnClickListener);
-        findViewById(R.id.btn7).setOnClickListener(btnOnClickListener);
-        findViewById(R.id.btn8).setOnClickListener(btnOnClickListener);
-        findViewById(R.id.btn9).setOnClickListener(btnOnClickListener);
     }
 }
